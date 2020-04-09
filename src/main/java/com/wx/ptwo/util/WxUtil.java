@@ -1,5 +1,11 @@
 package com.wx.ptwo.util;
 
+import com.google.gson.Gson;
+import com.wx.ptwo.models.AccessToken;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
+
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
@@ -23,14 +29,17 @@ public class WxUtil {
 //        return getSha1(str);
 //    }
 //
-//    public static String getAccesstToken(String appid, String appsecret) {
-//        String url = String.format("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", appid, appsecret);
-//        String response = HttpUtil.Get(url);
-//        Gson gson = new Gson();
-//        AccessToken accessToken = gson.fromJson(response, AccessToken.class);
-//        return accessToken.access_token;
-//    }
-//
+    public static String getAccesstToken(String appid, String appsecret) {
+        String url = String.format("https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s", appid, appsecret);
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        String response = restTemplate.getForObject(url, String.class);
+        Gson gson = new Gson();
+        AccessToken accessToken = gson.fromJson(response, AccessToken.class);
+        return accessToken.access_token;
+    }
+
+    //
 //    public static String getJsapiTicket(String accesstoken) {
 //        String url = String.format("https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi", accesstoken);
 //        String response = HttpUtil.Get(url);
