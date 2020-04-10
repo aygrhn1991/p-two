@@ -78,14 +78,23 @@ public class OAuth2Ctrl {
                 String msgType = root.elementText("MsgType");
                 String event = root.elementText("Event");
                 String openId = root.elementText("FromUserName");
+
+                String accessToken = WxUtil.getAccesstToken(this.wxAppId, this.wxAppSecret);
+                String url = String.format("https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN", accessToken, openId);
+                RestTemplate restTemplate = new RestTemplate();
+                restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+                String rsp = restTemplate.getForObject(url, String.class);
+                Gson gson = new Gson();
+                UserInfo userInfo = gson.fromJson(rsp, UserInfo.class);
+
                 if (msgType.equals("event") && event.equals("subscribe")) {
-                    String accessToken = WxUtil.getAccesstToken(this.wxAppId, this.wxAppSecret);
-                    String url = String.format("https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN", accessToken, openId);
-                    RestTemplate restTemplate = new RestTemplate();
-                    restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-                    String rsp = restTemplate.getForObject(url, String.class);
-                    Gson gson = new Gson();
-                    UserInfo userInfo = gson.fromJson(rsp, UserInfo.class);
+//                    String accessToken = WxUtil.getAccesstToken(this.wxAppId, this.wxAppSecret);
+//                    String url = String.format("https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN", accessToken, openId);
+//                    RestTemplate restTemplate = new RestTemplate();
+//                    restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+//                    String rsp = restTemplate.getForObject(url, String.class);
+//                    Gson gson = new Gson();
+//                    UserInfo userInfo = gson.fromJson(rsp, UserInfo.class);
 
                     String sql = "update t_user set w_openid2=? where w_unionid=?";
                     int count = this.jdbcTemplate.update(sql, new Object[]{userInfo.openid, userInfo.unionid});
@@ -130,35 +139,27 @@ public class OAuth2Ctrl {
                     rsp = restTemplate.postForObject("https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token=" + accessToken, r3, String.class);
                     System.out.println("客服消息返回2");
 
-//                    Document document2 = DocumentHelper.createDocument();
-//                    Element root2 = document2.addElement("xml");
-//                    Element toUserName = root2.addElement("ToUserName").addText(openId);
-//                    Element fromUserName = root2.addElement("FromUserName").addText(wxId);
-//                    Element createTime = root2.addElement("CreateTime").addText(String.valueOf(new Date().getTime()));
-//                    Element msgType2 = root2.addElement("MsgType").addText("text");
-//                    Element Content = root2.addElement("Content").addText("http://wx.fenglingtime.com/oauth1/requestcode/" + userInfo.unionid);
-//                    String responseXml = document2.asXML();
-//                    logger.info("自动回复-回复：" + responseXml);
-//                    PrintWriter out = new PrintWriter(new OutputStreamWriter(response.getOutputStream(), "UTF-8"));
-//                    out.print(responseXml);
-//                    out.flush();
-////                    out.close();
-//                    Document document2_1 = DocumentHelper.createDocument();
-//                    Element root2_1 = document2_1.addElement("xml");
-//                    Element toUserName_1 = root2_1.addElement("ToUserName").addText(openId);
-//                    Element fromUserName_1 = root2_1.addElement("FromUserName").addText(wxId);
-//                    Element createTime_1 = root2_1.addElement("CreateTime").addText(String.valueOf(new Date().getTime()));
-//                    Element msgType2_1 = root2_1.addElement("MsgType").addText("text");
-//                    Element Content_1 = root2_1.addElement("Content").addText("http://wx.fenglingtime.com/oauth1/requestcode/" + userInfo.unionid);
-//                    responseXml = document2_1.asXML();
-//                    logger.info("自动回复-回复：" + responseXml);
-//                    out = new PrintWriter(new OutputStreamWriter(response.getOutputStream(), "UTF-8"));
-//                    out.print(responseXml);
-//                    out.flush();
-//                    out.close();
+
                 } else if (msgType.equals("event") && event.equals("unsubscribe")) {
                     String sql = "update t_event left join t_user on t_user.w_unionid=t_event.member set subscribe=2 where t_user.w_openid2=?";
                     int count = this.jdbcTemplate.update(sql, new Object[]{openId});
+                } else if (msgType.equals("text")) {
+                    String sql = "select count(*) from t_event where organizer=? and subscribe=1";
+                    int count = this.jdbcTemplate.queryForObject(sql, new Object[]{userInfo.unionid}, Integer.class);
+
+                    Document document2 = DocumentHelper.createDocument();
+                    Element root2 = document2.addElement("xml");
+                    Element toUserName = root2.addElement("ToUserName").addText(openId);
+                    Element fromUserName = root2.addElement("FromUserName").addText(wxId);
+                    Element createTime = root2.addElement("CreateTime").addText(String.valueOf(new Date().getTime()));
+                    Element msgType2 = root2.addElement("MsgType").addText("text");
+                    Element Content = root2.addElement("Content").addText("当前助力用户：" + count + "人");
+                    String responseXml = document2.asXML();
+                    logger.info("自动回复-回复：" + responseXml);
+                    PrintWriter out = new PrintWriter(new OutputStreamWriter(response.getOutputStream(), "UTF-8"));
+                    out.print(responseXml);
+                    out.flush();
+                    out.close();
                 }
             } catch (Exception e) {
                 logger.error("自动回复异常：" + e.getMessage());
