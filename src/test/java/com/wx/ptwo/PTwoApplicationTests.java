@@ -44,14 +44,20 @@ class PTwoApplicationTests {
 //            System.out.println(e.getMessage());
 //        }
 
-        String appid="wxf5d8d7427ebabd90";
-        String ticket="ticket@@@QTTT3GSySN5KuyOxWAieItN6EOtRCoL7a-eeFZwiceXtqOucBSmpxiVnXOPIsLFt2NYqZvu9jLc6IbL1P4AKvQ";
-        Map map=new HashMap<>();
-        map.put("component_appid",appid);
-        map.put("component_appsecret","4770f604fa35e23007e253fa3dd8eaba");
-        map.put("component_verify_ticket",ticket);
+        String appid = "wxf5d8d7427ebabd90";
+        String ticket = "ticket@@@xI4zg2BRy_O3dvAVOC-AIQc4nTdx2wQqtHAZMDeuYC4AcUfF-hLbrI4fMmqy4_BwVVurEWUaR44K8lhqUSV_hw";
+//        //token
+//        Map map=new HashMap<>();
+//        map.put("component_appid",appid);
+//        map.put("component_appsecret","4770f604fa35e23007e253fa3dd8eaba");
+//        map.put("component_verify_ticket",ticket);
+//        RestTemplate restTemplate = new RestTemplate();
+//        String result= restTemplate.postForObject("https://api.weixin.qq.com/cgi-bin/component/api_component_token",map,String.class);
+        String token = "32_MjQqV8-o9eWJUgjUtp9Dawxj2MYt09WKrJqpnEb-w2H8MvVaeF9lBEzA1Tfp1qyBsajY7dQ7cpYHhN7YS5rINmvQm0BS_pSXavpoF4TmMrjFP6fBsNNdZ8bbYFF2a2zcv6_r4SAu2b-oQtRWEOYcAHAUEO";
+        Map map = new HashMap<>();
+        map.put("component_appid", appid);
         RestTemplate restTemplate = new RestTemplate();
-        String result= restTemplate.postForObject("https://api.weixin.qq.com/cgi-bin/component/api_component_token",map,String.class);
+        String result = restTemplate.postForObject("https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token=" + token, map, String.class);
         System.out.println(result);
     }
 
